@@ -38,6 +38,7 @@ public class QuestActionFactory
         RegisterAction("spawn_monster", typeof(SpawnMonsterAction));
         RegisterAction("condition", typeof(ConditionAction));
         RegisterAction("delay", typeof(DelayAction));
+        RegisterAction("dialog", typeof(DialogAction));
     }
 
     /// <summary>

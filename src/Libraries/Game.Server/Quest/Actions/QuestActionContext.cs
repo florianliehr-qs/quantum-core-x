@@ -29,4 +29,10 @@ public class QuestActionContext
     /// Logger for debugging and error reporting.
     /// </summary>
     public required ILogger Logger { get; init; }
+
+    /// <summary>
+    /// Optional reference to the quest instance for dialog operations.
+    /// Only available for declarative quests that support dialog actions.
+    /// </summary>
+    public Quest? Quest { get; init; }
 }

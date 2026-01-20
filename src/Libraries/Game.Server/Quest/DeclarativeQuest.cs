@@ -172,7 +172,8 @@ public class DeclarativeQuest : Quest
             Player = Player,
             State = State,
             Services = _services,
-            Logger = _logger
+            Logger = _logger,
+            Quest = this  // Pass quest instance for dialog support
         };
 
         foreach (var action in actions)
@@ -188,6 +189,46 @@ public class DeclarativeQuest : Quest
             }
         }
     }
+
+    #region Public Dialog Methods for Actions
+
+    /// <summary>
+    /// Adds text to the quest dialog script.
+    /// </summary>
+    public void AddDialogText(string text)
+    {
+        Text(text);
+    }
+
+    /// <summary>
+    /// Shows a "Next" button and waits for player to click it.
+    /// </summary>
+    public void ShowNext()
+    {
+        Next();
+    }
+
+    /// <summary>
+    /// Shows multiple choice buttons and waits for player selection.
+    /// </summary>
+    /// <param name="options">Array of choice text strings</param>
+    /// <param name="done">If true, closes dialog after choice</param>
+    /// <returns>Zero-based index of the selected choice</returns>
+    public async Task<byte> ShowChoice(string[] options, bool done = false)
+    {
+        return await Choice(done, options);
+    }
+
+    /// <summary>
+    /// Closes the quest dialog.
+    /// </summary>
+    /// <param name="silent">If true, doesn't show final ENTER before closing</param>
+    public void CloseDialog(bool silent = false)
+    {
+        Done(silent);
+    }
+
+    #endregion
 
     private async Task TransitionToState(string newState)
     {
