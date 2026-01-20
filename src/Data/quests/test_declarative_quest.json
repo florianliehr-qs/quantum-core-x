@@ -1,0 +1,76 @@
+{
+  "id": "test_declarative_quest",
+  "name": "Test Declarative Quest",
+  "version": "1.0.0",
+  "description": "A simple test quest to verify the declarative quest system",
+
+  "states": {
+    "start": {
+      "triggers": [
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "condition": {
+            "type": "and",
+            "conditions": [
+              { "type": "quest_not_started" },
+              { "type": "level_min", "value": 1 }
+            ]
+          },
+          "actions": [
+            {
+              "type": "set_quest_flag",
+              "flag": "greeted",
+              "value": 1
+            }
+          ],
+          "next_state": "gathering"
+        }
+      ]
+    },
+
+    "gathering": {
+      "on_enter": [
+        {
+          "type": "set_quest_flag",
+          "flag": "items_collected",
+          "value": 0
+        },
+        {
+          "type": "send_letter",
+          "title": "Test Quest",
+          "text": "Collect 5 test items"
+        }
+      ],
+      "triggers": [
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "condition": {
+            "type": "quest_flag_gte",
+            "flag": "items_collected",
+            "value": 5
+          },
+          "actions": [
+            {
+              "type": "give_exp",
+              "amount": 100
+            },
+            {
+              "type": "give_gold",
+              "amount": 50
+            },
+            {
+              "type": "give_item",
+              "item_id": 11001,
+              "count": 1
+            },
+            {
+              "type": "complete_quest"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

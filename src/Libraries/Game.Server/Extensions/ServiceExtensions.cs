@@ -53,6 +53,10 @@ public static class ServiceExtensions
         services.AddScoped<IPlayerFactory, PlayerFactory>();
         services.AddScoped<IPlayerManager, PlayerManager>();
 
+        // Quest system services
+        services.AddSingleton<QuantumCore.Game.Quest.Factories.QuestActionFactory>();
+        services.AddSingleton<QuantumCore.Game.Quest.Factories.QuestConditionFactory>();
+
         return services;
     }
 }
