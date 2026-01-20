@@ -21,7 +21,6 @@ public class DeclarativeQuest : Quest
     private readonly QuestActionFactory _actionFactory;
     private readonly QuestConditionFactory _conditionFactory;
     private readonly IServiceProvider _services;
-    private readonly IDbQuestRepository _questRepository;
     private readonly ILogger _logger;
 
     public DeclarativeQuest(
@@ -31,14 +30,12 @@ public class DeclarativeQuest : Quest
         QuestActionFactory actionFactory,
         QuestConditionFactory conditionFactory,
         IServiceProvider services,
-        IDbQuestRepository questRepository,
         ILogger<DeclarativeQuest> logger) : base(state, player)
     {
         _definition = definition;
         _actionFactory = actionFactory;
         _conditionFactory = conditionFactory;
         _services = services;
-        _questRepository = questRepository;
         _logger = logger;
     }
 
@@ -157,7 +154,9 @@ public class DeclarativeQuest : Quest
         }
 
         // Save quest state
-        await _questRepository.SaveQuestStateAsync(Player.Player.Id, State);
+        using var scope = _services.CreateScope();
+        var questRepository = scope.ServiceProvider.GetRequiredService<IDbQuestRepository>();
+        await questRepository.SaveQuestStateAsync(Player.Player.Id, State);
     }
 
     private async Task ExecuteActions(List<JsonObject> actionsJson)

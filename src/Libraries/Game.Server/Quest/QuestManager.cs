@@ -17,7 +17,6 @@ public class QuestManager : IQuestManager, ILoadable
     private readonly DeclarativeQuestProvider _declarativeQuestProvider;
     private readonly QuestActionFactory _actionFactory;
     private readonly QuestConditionFactory _conditionFactory;
-    private readonly IDbQuestRepository _questRepository;
     private readonly Dictionary<string, Type> _quests = new();
 
     public QuestManager(
@@ -25,15 +24,13 @@ public class QuestManager : IQuestManager, ILoadable
         ILogger<QuestManager> logger,
         DeclarativeQuestProvider declarativeQuestProvider,
         QuestActionFactory actionFactory,
-        QuestConditionFactory conditionFactory,
-        IDbQuestRepository questRepository)
+        QuestConditionFactory conditionFactory)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _declarativeQuestProvider = declarativeQuestProvider;
         _actionFactory = actionFactory;
         _conditionFactory = conditionFactory;
-        _questRepository = questRepository;
     }
 
     public async Task LoadAsync(CancellationToken token = default)
@@ -60,10 +57,14 @@ public class QuestManager : IQuestManager, ILoadable
             return;
         }
 
+        // Create a scope to resolve scoped services like IDbQuestRepository
+        using var scope = _serviceProvider.CreateScope();
+        var questRepository = scope.ServiceProvider.GetRequiredService<IDbQuestRepository>();
+
         // Initialize C# quests
         foreach (var (id, questType) in _quests)
         {
-            var state = _questRepository.GetQuestStateAsync(player.Player.Id, id).Result
+            var state = questRepository.GetQuestStateAsync(player.Player.Id, id).Result
                 ?? new QuestState { QuestId = id };
 
             Quest quest;
@@ -84,7 +85,7 @@ public class QuestManager : IQuestManager, ILoadable
         // Initialize declarative quests
         foreach (var (id, definition) in _declarativeQuestProvider.Quests)
         {
-            var state = _questRepository.GetQuestStateAsync(player.Player.Id, id).Result
+            var state = questRepository.GetQuestStateAsync(player.Player.Id, id).Result
                 ?? new QuestState { QuestId = id };
 
             try
@@ -96,7 +97,6 @@ public class QuestManager : IQuestManager, ILoadable
                     _actionFactory,
                     _conditionFactory,
                     _serviceProvider,
-                    _questRepository,
                     _serviceProvider.GetRequiredService<ILogger<DeclarativeQuest>>());
 
                 quest.Init();
