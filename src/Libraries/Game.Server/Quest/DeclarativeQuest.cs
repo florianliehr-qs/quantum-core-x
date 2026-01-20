@@ -22,6 +22,7 @@ public class DeclarativeQuest : Quest
     private readonly QuestConditionFactory _conditionFactory;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+    private readonly object _triggerToken;
 
     public DeclarativeQuest(
         QuestState state,
@@ -37,6 +38,7 @@ public class DeclarativeQuest : Quest
         _conditionFactory = conditionFactory;
         _services = services;
         _logger = logger;
+        _triggerToken = new object(); // Unique token for this quest instance
     }
 
     public override void Init()
@@ -82,8 +84,9 @@ public class DeclarativeQuest : Quest
                     GameEventManager.RegisterNpcClickEvent(
                         $"{_definition.Name} ({State.CurrentState})",
                         trigger.NpcId.Value,
-                        async (player) => await HandleTriggerFired(trigger, player),
-                        player => player.Vid == Player.Vid && EvaluateTriggerCondition(trigger));
+                        async (player) => await HandleTriggerFired(trigger),
+                        player => player.Vid == Player.Vid && EvaluateTriggerCondition(trigger),
+                        _triggerToken);
                 }
                 else
                 {
@@ -97,10 +100,11 @@ public class DeclarativeQuest : Quest
                     GameEventManager.RegisterNpcGiveEvent(
                         $"{_definition.Name} ({State.CurrentState})",
                         trigger.NpcId.Value,
-                        async (player, item) => await HandleTriggerFired(trigger, player),
+                        async (player, item) => await HandleTriggerFired(trigger),
                         (player, item) => player.Vid == Player.Vid &&
                                         (!trigger.ItemId.HasValue || item.ItemId == trigger.ItemId.Value) &&
-                                        EvaluateTriggerCondition(trigger));
+                                        EvaluateTriggerCondition(trigger),
+                        _triggerToken);
                 }
                 else
                 {
@@ -139,7 +143,7 @@ public class DeclarativeQuest : Quest
         return condition.Evaluate(context);
     }
 
-    private async Task HandleTriggerFired(TriggerDefinition trigger, IPlayerEntity player)
+    private async Task HandleTriggerFired(TriggerDefinition trigger)
     {
         _logger.LogDebug("Quest {QuestId} - Trigger fired: {TriggerType} in state {StateName}",
             _definition.Id, trigger.Type, State.CurrentState);
@@ -205,6 +209,9 @@ public class DeclarativeQuest : Quest
             }
         }
 
+        // Unregister all triggers for the old state
+        UnregisterAllTriggers();
+
         // Update state
         State.CurrentState = newState;
         _logger.LogInformation("Quest {QuestId} - Transitioned from '{OldState}' to '{NewState}'",
@@ -213,10 +220,14 @@ public class DeclarativeQuest : Quest
         // Execute on_enter actions for new state
         await ExecuteStateEnterActions(newState);
 
-        // Re-register triggers for new state
-        // Note: This is a simplified approach. In a production system,
-        // you'd want to unregister old triggers first.
+        // Register triggers for new state
         RegisterTriggersForCurrentState();
+    }
+
+    private void UnregisterAllTriggers()
+    {
+        GameEventManager.UnregisterNpcClickEventsByToken(_triggerToken);
+        GameEventManager.UnregisterNpcGiveEventsByToken(_triggerToken);
     }
 
     private async Task ExecuteStateEnterActions(string stateName)
