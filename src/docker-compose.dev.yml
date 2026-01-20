@@ -9,7 +9,7 @@ services:
   game:
     build:
       context: .
-      dockerfile: Executables/Game/Dockerfile
+      dockerfile: Executables/Game/Dockerfile.dev
     container_name: quantumcore-game-dev
     restart: unless-stopped
     ports:
@@ -47,7 +47,7 @@ services:
   auth:
     build:
       context: .
-      dockerfile: Executables/Auth/Dockerfile
+      dockerfile: Executables/Auth/Dockerfile.dev
     container_name: quantumcore-auth-dev
     restart: unless-stopped
     ports:
