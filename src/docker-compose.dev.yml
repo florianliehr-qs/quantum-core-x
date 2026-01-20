@@ -1,0 +1,165 @@
+# Development docker-compose with PostgreSQL
+# For testing quest features and development
+# Usage: docker-compose -f docker-compose.dev.yml --env-file .env up
+
+name: 'Quantum Core X - Development'
+
+services:
+  # Game Server - Built from source
+  game:
+    build:
+      context: .
+      dockerfile: Executables/Game/Dockerfile
+    container_name: quantumcore-game-dev
+    restart: unless-stopped
+    ports:
+      - "${GAME_PORT:-13001}:13001"
+    environment:
+      # Database (PostgreSQL)
+      - "Database:Provider=postgresql"
+      - "Database:ConnectionString=Host=db-postgres;Port=5432;Database=${POSTGRES_DB:-metin2};Username=${POSTGRES_USER:-metin2};Password=${POSTGRES_PASSWORD:-metin2}"
+      # Cache (Redis)
+      - "Cache:Host=cache"
+      - "Cache:Port=6379"
+      # Auth Service
+      - "Auth:BaseUrl=${AUTH_BASE_URL:-http://auth:11002}"
+      # Hosting
+      - "Hosting:Port=13001"
+      # Serilog
+      - "Serilog:MinimumLevel:Override:QuantumCore.Game=${LOG_LEVEL_GAME:-Information}"
+      - "Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore=${LOG_LEVEL_EF:-Warning}"
+    volumes:
+      # Mount quest JSON files for hot-reload during development
+      - ./data/quests:/app/data/quests:ro
+      # Mount appsettings for easy config changes (optional)
+      - ./Executables/Game/appsettings.json:/app/appsettings.json:ro
+    depends_on:
+      db-postgres:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      auth:
+        condition: service_started
+    networks:
+      - quantumcore-dev
+
+  # Authentication Service
+  auth:
+    build:
+      context: .
+      dockerfile: Executables/Auth/Dockerfile
+    container_name: quantumcore-auth-dev
+    restart: unless-stopped
+    ports:
+      - "${AUTH_PORT:-11002}:11002"
+    environment:
+      - "Database:Provider=postgresql"
+      - "Database:ConnectionString=Host=db-postgres;Port=5432;Database=${POSTGRES_DB:-metin2};Username=${POSTGRES_USER:-metin2};Password=${POSTGRES_PASSWORD:-metin2}"
+      - "Cache:Host=cache"
+      - "Cache:Port=6379"
+      - "Hosting:Port=11002"
+    volumes:
+      - ./Executables/Auth/appsettings.json:/app/appsettings.json:ro
+    depends_on:
+      db-postgres:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    networks:
+      - quantumcore-dev
+
+  # PostgreSQL Database
+  db-postgres:
+    image: postgres:17-alpine
+    container_name: quantumcore-postgres-dev
+    hostname: db-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-metin2}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-metin2}
+      POSTGRES_DB: ${POSTGRES_DB:-metin2}
+      # Performance tuning for development
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - db_data_postgres:/var/lib/postgresql/data
+      # Optional: Mount init scripts for database setup
+      # - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-metin2} -d ${POSTGRES_DB:-metin2}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - quantumcore-dev
+
+  # Redis Cache
+  cache:
+    image: redis:7-alpine
+    container_name: quantumcore-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - cache_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - quantumcore-dev
+
+  # pgAdmin - PostgreSQL Web UI (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: quantumcore-pgadmin-dev
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@quantumcore.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db-postgres
+    networks:
+      - quantumcore-dev
+    profiles:
+      - tools
+
+  # Redis Commander - Redis Web UI (Optional)
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: quantumcore-redis-commander-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    environment:
+      - REDIS_HOSTS=local:cache:6379
+    depends_on:
+      - cache
+    networks:
+      - quantumcore-dev
+    profiles:
+      - tools
+
+volumes:
+  db_data_postgres:
+    name: quantumcore-postgres-dev-data
+  cache_data:
+    name: quantumcore-redis-dev-data
+  pgadmin_data:
+    name: quantumcore-pgadmin-dev-data
+
+networks:
+  quantumcore-dev:
+    name: quantumcore-dev-network
+    driver: bridge

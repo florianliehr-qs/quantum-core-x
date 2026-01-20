@@ -19,7 +19,12 @@
       "Bash(dotnet list:*)",
       "Bash(while read file)",
       "Bash(do grep -c \"player.Player.Returns\" \"$file\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(chmod:*)",
+      "Bash(if [ -f .gitignore ])",
+      "Bash(then grep -q \"^\\\\.env$\" .gitignore)",
+      "Bash(else echo \".env\")",
+      "Bash(fi)"
     ]
   }
 }
