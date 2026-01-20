@@ -34,6 +34,10 @@ public class QuestActionFactory
         RegisterAction("give_exp", typeof(GiveExpAction));
         RegisterAction("give_gold", typeof(GiveGoldAction));
         RegisterAction("send_letter", typeof(SendLetterAction));
+        RegisterAction("warp", typeof(WarpAction));
+        RegisterAction("spawn_monster", typeof(SpawnMonsterAction));
+        RegisterAction("condition", typeof(ConditionAction));
+        RegisterAction("delay", typeof(DelayAction));
     }
 
     /// <summary>

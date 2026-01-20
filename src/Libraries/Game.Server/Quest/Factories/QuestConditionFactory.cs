@@ -26,11 +26,16 @@ public class QuestConditionFactory
     private void RegisterDefaultConditions()
     {
         RegisterCondition("quest_not_started", typeof(QuestNotStartedCondition));
+        RegisterCondition("quest_completed", typeof(QuestCompletedCondition));
         RegisterCondition("quest_flag_gte", typeof(QuestFlagGteCondition));
         RegisterCondition("quest_flag_eq", typeof(QuestFlagEqCondition));
         RegisterCondition("level_min", typeof(LevelMinCondition));
         RegisterCondition("level_max", typeof(LevelMaxCondition));
+        RegisterCondition("level_range", typeof(LevelRangeCondition));
         RegisterCondition("class_check", typeof(ClassCheckCondition));
+        RegisterCondition("guild_check", typeof(GuildCheckCondition));
+        RegisterCondition("gold_check", typeof(GoldCheckCondition));
+        RegisterCondition("time_check", typeof(TimeCheckCondition));
         RegisterCondition("has_item", typeof(HasItemCondition));
         RegisterCondition("and", typeof(AndCondition));
         RegisterCondition("or", typeof(OrCondition));
