@@ -1,0 +1,141 @@
+{
+  "id": "test_declarative_quest",
+  "name": "The Blacksmith's Request",
+  "version": "1.0.0",
+  "description": "A blacksmith needs help gathering materials for a special weapon",
+
+  "states": {
+    "start": {
+      "triggers": [
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "condition": {
+            "type": "and",
+            "conditions": [
+              { "type": "quest_not_started" },
+              { "type": "level_min", "value": 5 }
+            ]
+          },
+          "actions": [
+            {
+              "type": "dialog",
+              "pages": [
+                {
+                  "text": "Greetings, traveler! I am Master Daerun, the village blacksmith.",
+                  "next": true
+                },
+                {
+                  "text": "I have an urgent request. I'm crafting a legendary sword, but I need rare materials from the forest.",
+                  "next": true
+                },
+                {
+                  "text": "Would you be willing to help me gather 10 Iron Ore? I'll make it worth your while.",
+                  "choices": [
+                    {
+                      "text": "Yes, I'll help you!",
+                      "next_state": "gathering"
+                    },
+                    {
+                      "text": "Maybe later...",
+                      "action": "close"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    "gathering": {
+      "on_enter": [
+        {
+          "type": "set_quest_flag",
+          "flag": "ore_collected",
+          "value": 0
+        },
+        {
+          "type": "send_letter",
+          "title": "The Blacksmith's Request",
+          "text": "Collect 10 Iron Ore from the forest"
+        }
+      ],
+      "triggers": [
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "condition": {
+            "type": "quest_flag_gte",
+            "flag": "ore_collected",
+            "value": 10
+          },
+          "actions": [
+            {
+              "type": "dialog",
+              "pages": [
+                {
+                  "text": "Ah, you're back! Did you manage to find the ore?",
+                  "next": true
+                },
+                {
+                  "text": "Excellent work! These are perfect quality. With these, I can complete the legendary blade.",
+                  "next": true
+                },
+                {
+                  "text": "As promised, here's your reward. The sword will be ready soon - perhaps you'll wield it one day!",
+                  "next": true
+                }
+              ]
+            },
+            {
+              "type": "remove_item",
+              "item_id": 50001,
+              "count": 10
+            },
+            {
+              "type": "give_exp",
+              "amount": 1000
+            },
+            {
+              "type": "give_gold",
+              "amount": 5000
+            },
+            {
+              "type": "give_item",
+              "item_id": 11001,
+              "count": 1
+            },
+            {
+              "type": "complete_quest"
+            }
+          ]
+        },
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "condition": {
+            "type": "not",
+            "condition": {
+              "type": "quest_flag_gte",
+              "flag": "ore_collected",
+              "value": 10
+            }
+          },
+          "actions": [
+            {
+              "type": "dialog",
+              "pages": [
+                {
+                  "text": "Still searching for the ore, I see. Don't give up! The forest holds many treasures.",
+                  "next": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

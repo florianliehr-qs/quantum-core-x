@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+COPY . /src
+WORKDIR /src/Executables/Auth
+
+# Build for the target architecture (auto-detected)
+# Use TARGETARCH build arg to support multi-platform builds
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        dotnet publish -c Release -o /src/bin/core -r linux-musl-arm64 --no-self-contained -p:PublishSingleFile=true; \
+    else \
+        dotnet publish -c Release -o /src/bin/core -r linux-musl-x64 --no-self-contained -p:PublishSingleFile=true; \
+    fi
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine
+COPY --from=build /src/bin/core /app
+WORKDIR /app
+ENTRYPOINT ["/app/QuantumCore.Auth"]

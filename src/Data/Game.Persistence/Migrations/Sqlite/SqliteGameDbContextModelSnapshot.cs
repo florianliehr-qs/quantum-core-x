@@ -15,7 +15,7 @@ namespace QuantumCore.Game.Persistence.Migrations.Sqlite
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.4");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
 
             modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.DeletedPlayer", b =>
                 {
@@ -457,6 +457,64 @@ namespace QuantumCore.Game.Persistence.Migrations.Sqlite
                         });
                 });
 
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.PlayerQuest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("start");
+
+                    b.Property<bool>("IsCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<uint>("PlayerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("QuestDataJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("{}");
+
+                    b.Property<string>("QuestId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsCompleted")
+                        .HasDatabaseName("IX_PlayerQuests_IsCompleted");
+
+                    b.HasIndex("PlayerId")
+                        .HasDatabaseName("IX_PlayerQuests_PlayerId");
+
+                    b.HasIndex("QuestId")
+                        .HasDatabaseName("IX_PlayerQuests_QuestId");
+
+                    b.HasIndex("PlayerId", "QuestId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PlayerQuests_PlayerId_QuestId");
+
+                    b.ToTable("PlayerQuests");
+                });
+
             modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.PlayerQuickSlot", b =>
                 {
                     b.Property<uint>("PlayerId")
@@ -630,6 +688,17 @@ namespace QuantumCore.Game.Persistence.Migrations.Sqlite
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.PlayerQuest", b =>
+                {
+                    b.HasOne("QuantumCore.Game.Persistence.Entities.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.PlayerQuickSlot", b =>

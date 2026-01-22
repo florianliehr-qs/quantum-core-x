@@ -12,6 +12,7 @@ public static class GameEventManager
         public uint NpcId { get; set; }
         public Func<IPlayerEntity, Task> Callback { get; set; }
         public Func<IPlayerEntity, bool>? Condition { get; set; }
+        public object? Token { get; set; }
     }
 
     private struct NpcGiveEvent
@@ -20,6 +21,7 @@ public static class GameEventManager
         public uint NpcId { get; set; }
         public Func<IPlayerEntity, ItemInstance, Task> Callback { get; set; }
         public Func<IPlayerEntity, ItemInstance, bool>? Condition { get; set; }
+        public object? Token { get; set; }
     }
 
     private static readonly Dictionary<uint, List<NpcClickEvent>> NpcClickEvents = new();
@@ -97,7 +99,7 @@ public static class GameEventManager
     }
 
     public static void RegisterNpcClickEvent(string name, uint npcId, Func<IPlayerEntity, Task> callback,
-        Func<IPlayerEntity, bool>? condition = null)
+        Func<IPlayerEntity, bool>? condition = null, object? token = null)
     {
         if (!NpcClickEvents.ContainsKey(npcId))
         {
@@ -109,12 +111,13 @@ public static class GameEventManager
             Name = name,
             NpcId = npcId,
             Callback = callback,
-            Condition = condition
+            Condition = condition,
+            Token = token
         });
     }
 
     public static void RegisterNpcGiveEvent(string name, uint npcId, Func<IPlayerEntity, ItemInstance, Task> callback,
-        Func<IPlayerEntity, ItemInstance, bool>? condition = null)
+        Func<IPlayerEntity, ItemInstance, bool>? condition = null, object? token = null)
     {
         if (!NpcGiveEvents.ContainsKey(npcId))
         {
@@ -126,7 +129,32 @@ public static class GameEventManager
             Name = name,
             NpcId = npcId,
             Callback = callback,
-            Condition = condition
+            Condition = condition,
+            Token = token
         });
+    }
+
+    public static void UnregisterNpcClickEventsByToken(object token)
+    {
+        foreach (var npcId in NpcClickEvents.Keys.ToList())
+        {
+            NpcClickEvents[npcId].RemoveAll(e => e.Token != null && e.Token.Equals(token));
+            if (NpcClickEvents[npcId].Count == 0)
+            {
+                NpcClickEvents.Remove(npcId);
+            }
+        }
+    }
+
+    public static void UnregisterNpcGiveEventsByToken(object token)
+    {
+        foreach (var npcId in NpcGiveEvents.Keys.ToList())
+        {
+            NpcGiveEvents[npcId].RemoveAll(e => e.Token != null && e.Token.Equals(token));
+            if (NpcGiveEvents[npcId].Count == 0)
+            {
+                NpcGiveEvents.Remove(npcId);
+            }
+        }
     }
 }
