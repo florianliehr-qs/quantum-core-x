@@ -1,0 +1,76 @@
+{
+  "id": "test_quest",
+  "name": "Test Quest",
+  "version": "1.0.0",
+  "description": "A simple test quest demonstrating the quest dialog system (migrated from TestQuest.cs)",
+
+  "states": {
+    "start": {
+      "triggers": [
+        {
+          "type": "npc_click",
+          "npc_id": 20354,
+          "actions": [
+            {
+              "type": "dialog",
+              "pages": [
+                {
+                  "text": "Hello World from QuantumCore![ENTER]This is using the current work in progress[ENTER]Quest API.",
+                  "next": true
+                },
+                {
+                  "text": "This is the second page showing how to easily[ENTER]using await to wait for user response",
+                  "choices": [
+                    {
+                      "text": "1st option",
+                      "actions": [
+                        {
+                          "type": "dialog",
+                          "pages": [
+                            {
+                              "text": "You've chosen: 0",
+                              "next": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "text": "2nd option",
+                      "actions": [
+                        {
+                          "type": "dialog",
+                          "pages": [
+                            {
+                              "text": "You've chosen: 1",
+                              "next": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "npc_give",
+          "npc_id": 20016,
+          "actions": [
+            {
+              "type": "dialog",
+              "pages": [
+                {
+                  "text": "Thanks for giving me the item!",
+                  "next": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
