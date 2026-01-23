@@ -62,7 +62,7 @@ public abstract class Quest : IQuest
         _questScript += str + "[ENTER]";
     }
 
-    protected void Next()
+    protected async Task Next()
     {
         _currentNextTask?.TrySetCanceled();
         _currentNextTask = new TaskCompletionSource();
@@ -71,6 +71,7 @@ public abstract class Quest : IQuest
         SendScript();
 
         _player.CurrentQuest = this;
+        await _currentNextTask.Task;
     }
 
     protected async Task<byte> Choice(bool done = false, params string[] options)

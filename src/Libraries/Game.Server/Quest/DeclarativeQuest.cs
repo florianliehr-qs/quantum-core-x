@@ -203,9 +203,9 @@ public class DeclarativeQuest : Quest
     /// <summary>
     /// Shows a "Next" button and waits for player to click it.
     /// </summary>
-    public void ShowNext()
+    public async Task ShowNext()
     {
-        Next();
+        await Next();
     }
 
     /// <summary>

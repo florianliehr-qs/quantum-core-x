@@ -30,7 +30,7 @@ public class TestQuest : Quest
         Text("Hello World from QuantumCore!");
         Text("This is using the current work in progress");
         Text("Quest API.");
-        Next();
+        await Next();
 
         Text("This is the second page showing how to easily");
         Text("using await to wait for user response");

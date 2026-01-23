@@ -50,8 +50,7 @@ public class DialogAction : QuestActionBase
         // Handle Next button
         if (page.Next)
         {
-            quest.ShowNext();
-            // Wait for player to click Next (handled by Quest base class)
+            await quest.ShowNext();
             return;
         }
 
