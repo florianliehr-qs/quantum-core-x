@@ -5,5 +5,7 @@ namespace QuantumCore.API;
 public interface IQuestManager
 {
     void InitializePlayer(IPlayerEntity player);
+    Task InitializePlayerAsync(IPlayerEntity player);
+    Task SavePlayerQuestsAsync(IPlayerEntity player);
     void RegisterQuest(Type questType);
 }

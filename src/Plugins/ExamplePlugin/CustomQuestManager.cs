@@ -22,6 +22,16 @@ public class CustomQuestManager : IQuestManager
     {
     }
 
+    public Task InitializePlayerAsync(IPlayerEntity player)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task SavePlayerQuestsAsync(IPlayerEntity player)
+    {
+        return Task.CompletedTask;
+    }
+
     public void RegisterQuest(Type questType)
     {
     }
