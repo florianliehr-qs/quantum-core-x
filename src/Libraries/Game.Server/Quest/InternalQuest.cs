@@ -1,4 +1,5 @@
-﻿using QuantumCore.API.Core.Models;
+using QuantumCore.API;
+using QuantumCore.API.Core.Models;
 using QuantumCore.API.Game.Types.Quest;
 using QuantumCore.API.Game.World;
 
@@ -7,7 +8,7 @@ namespace QuantumCore.Game.Quest;
 [Quest]
 public class InternalQuest : Quest
 {
-    public InternalQuest(QuestState state, IPlayerEntity player) : base(state, player)
+    public InternalQuest(QuestState state, IPlayerEntity player, IItemManager itemManager) : base(state, player, itemManager)
     {
     }
 

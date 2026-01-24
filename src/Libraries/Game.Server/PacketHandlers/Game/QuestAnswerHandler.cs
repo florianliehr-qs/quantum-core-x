@@ -19,11 +19,18 @@ public class QuestAnswerHandler : IGamePacketHandler<QuestAnswer>
         var player = ctx.Connection.Player;
         if (player is null)
         {
+            _logger.LogWarning("QuestAnswerHandler: player is null");
             ctx.Connection.Close();
             return Task.CompletedTask;
         }
 
-        _logger.LogInformation("Quest answer: {Answer}", ctx.Packet.Answer);
+        _logger.LogWarning("Quest answer: {Answer}, CurrentQuest: {HasQuest}", ctx.Packet.Answer, player.CurrentQuest != null);
+
+        if (player.CurrentQuest is null)
+        {
+            _logger.LogWarning("QuestAnswerHandler: CurrentQuest is null for player {Player}", player.Name);
+        }
+
         player.CurrentQuest?.Answer(ctx.Packet.Answer);
 
         return Task.CompletedTask;

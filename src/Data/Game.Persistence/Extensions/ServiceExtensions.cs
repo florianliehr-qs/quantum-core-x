@@ -28,6 +28,7 @@ public static class ServiceExtensions
         services.AddScoped<IDbPlayerSkillsRepository, DbPlayerSkillsRepository>();
         services.AddScoped<ICommandPermissionRepository, CommandPermissionRepository>();
         services.AddScoped<IItemRepository, ItemRepository>();
+        services.AddScoped<IDbQuestRepository, DbQuestRepository>();
 
         return services;
     }

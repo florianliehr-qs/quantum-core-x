@@ -526,6 +526,132 @@ namespace QuantumCore.Game.Persistence.Migrations.Mysql
                     b.ToTable("PlayerSkills");
                 });
 
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.Property<bool>("IsCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsStarted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<uint>("PlayerId")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<string>("QuestName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<int>("StateIndex")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "QuestName")
+                        .IsUnique();
+
+                    b.ToTable("QuestData");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestFlag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<Guid>("QuestDataId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.Property<int>("Value")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestDataId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("QuestFlags");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestTimer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.Property<bool>("IsProcessed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<Guid>("QuestDataId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("TriggerAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CAST(CURRENT_TIMESTAMP AS DATETIME(6)))");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TriggerAt", "IsProcessed");
+
+                    b.HasIndex("QuestDataId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("QuestTimers");
+                });
+
             modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.Guilds.Guild", b =>
                 {
                     b.HasOne("QuantumCore.Game.Persistence.Entities.Player", "Leader")
@@ -654,6 +780,39 @@ namespace QuantumCore.Game.Persistence.Migrations.Mysql
                     b.Navigation("Player");
                 });
 
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestData", b =>
+                {
+                    b.HasOne("QuantumCore.Game.Persistence.Entities.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestFlag", b =>
+                {
+                    b.HasOne("QuantumCore.Game.Persistence.Entities.QuestData", "QuestData")
+                        .WithMany("Flags")
+                        .HasForeignKey("QuestDataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QuestData");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestTimer", b =>
+                {
+                    b.HasOne("QuantumCore.Game.Persistence.Entities.QuestData", "QuestData")
+                        .WithMany("Timers")
+                        .HasForeignKey("QuestDataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QuestData");
+                });
+
             modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.Guilds.Guild", b =>
                 {
                     b.Navigation("Members");
@@ -684,6 +843,13 @@ namespace QuantumCore.Game.Persistence.Migrations.Mysql
                     b.Navigation("QuickSlots");
 
                     b.Navigation("WrittenGuildNews");
+                });
+
+            modelBuilder.Entity("QuantumCore.Game.Persistence.Entities.QuestData", b =>
+                {
+                    b.Navigation("Flags");
+
+                    b.Navigation("Timers");
                 });
 #pragma warning restore 612, 618
         }
