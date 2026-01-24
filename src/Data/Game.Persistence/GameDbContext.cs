@@ -18,6 +18,9 @@ public abstract class GameDbContext : DbContext
     public DbSet<GuildRank> GuildRanks { get; set; }
     public DbSet<GuildMember> GuildMembers { get; set; }
     public DbSet<GuildNews> GuildNews { get; set; }
+    public DbSet<QuestData> QuestData { get; set; } = null!;
+    public DbSet<QuestFlag> QuestFlags { get; set; } = null!;
+    public DbSet<QuestTimer> QuestTimers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,5 +37,9 @@ public abstract class GameDbContext : DbContext
         GuildMember.Configure(modelBuilder.Entity<GuildMember>(), Database);
         GuildRank.Configure(modelBuilder.Entity<GuildRank>(), Database);
         Entities.Guilds.GuildNews.Configure(modelBuilder.Entity<GuildNews>(), Database);
+
+        Entities.QuestData.Configure(modelBuilder.Entity<QuestData>(), Database);
+        Entities.QuestFlag.Configure(modelBuilder.Entity<QuestFlag>(), Database);
+        Entities.QuestTimer.Configure(modelBuilder.Entity<QuestTimer>(), Database);
     }
 }
