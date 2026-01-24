@@ -33,10 +33,11 @@ public class World : IWorld, ILoadable
     private readonly INpcShopProvider _shopProvider;
     private readonly ISpawnGroupProvider _spawnGroupProvider;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IQuestEventManager _questEventManager;
 
     public World(ILogger<World> logger, PluginExecutor pluginExecutor, IItemManager itemManager,
         ICacheManager cacheManager, ISpawnGroupProvider spawnGroupProvider,
-        IServiceProvider serviceProvider, INpcShopProvider shopProvider)
+        IServiceProvider serviceProvider, INpcShopProvider shopProvider, IQuestEventManager questEventManager)
     {
         _logger = logger;
         _pluginExecutor = pluginExecutor;
@@ -45,6 +46,7 @@ public class World : IWorld, ILoadable
         _spawnGroupProvider = spawnGroupProvider;
         _serviceProvider = serviceProvider;
         _shopProvider = shopProvider;
+        _questEventManager = questEventManager;
         _vid = 0;
     }
 
@@ -124,7 +126,7 @@ public class World : IWorld, ILoadable
                 shop.AddItem(item.Item, item.Amount, itemData.BuyPrice);
             }
 
-            GameEventManager.RegisterNpcClickEvent(shop.Name, shopDef.Monster, player =>
+            _questEventManager.RegisterNpcClickEvent(shop.Name, shopDef.Monster, player =>
             {
                 shop.Open(player);
                 return Task.CompletedTask;
@@ -326,6 +328,21 @@ public class World : IWorld, ILoadable
     public async Task DespawnPlayerAsync(IPlayerEntity player)
     {
         RemovePlayer(player);
+
+        // Save quest states before despawning
+        try
+        {
+            var questManager = _serviceProvider.GetService<IQuestManager>();
+            if (questManager is not null)
+            {
+                await questManager.SavePlayerQuestsAsync(player);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save quest states for player {PlayerId}", player.Player.Id);
+        }
+
         await player.OnDespawnAsync();
 
         _pluginExecutor.ExecutePlugins<IGameEntityLifetimeListener>(_logger, x => x.OnPreDeletedAsync()).Wait();

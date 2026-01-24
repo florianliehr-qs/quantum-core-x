@@ -174,7 +174,7 @@ public class PlayerEntity : Entity, IPlayerEntity, IDisposable
         var guildManager = _scope.ServiceProvider.GetRequiredService<IGuildManager>();
         Guild = await guildManager.GetGuildForPlayerAsync(Player.Id);
         Player.GuildId = Guild?.Id;
-        _questManager.InitializePlayer(this);
+        await _questManager.InitializePlayerAsync(this);
 
         CalculateDefence();
         CalculateMovement();

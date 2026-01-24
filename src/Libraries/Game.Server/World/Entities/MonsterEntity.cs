@@ -63,7 +63,8 @@ public class MonsterEntity : Entity
     private ServerTimestamp? _diedAt;
     private readonly IMap _map;
     private readonly IItemManager _itemManager;
-    private IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IQuestEventManager? _questEventManager;
 
     public MonsterEntity(IMonsterManager monsterManager, IDropProvider dropProvider,
         IAnimationManager animationManager,
@@ -84,6 +85,7 @@ public class MonsterEntity : Entity
         _serviceProvider = serviceProvider;
         _logger = logger;
         _itemManager = itemManager;
+        _questEventManager = serviceProvider.GetService<IQuestEventManager>();
         Proto = proto;
         PositionX = x;
         PositionY = y;
@@ -243,6 +245,28 @@ public class MonsterEntity : Entity
         CalculateDrops();
 
         base.Die();
+
+        // Fire kill event for quest system
+        if (LastAttacker is not null && _questEventManager is not null)
+        {
+            // Capture references for the closure
+            var questEventManager = _questEventManager;
+            var entityClass = EntityClass;
+            var lastAttacker = LastAttacker;
+
+            // Fire-and-forget to avoid blocking
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await questEventManager.OnKill(entityClass, lastAttacker);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in kill event handler for mob {MobVnum}", entityClass);
+                }
+            });
+        }
 
         var dead = new CharacterDead {Vid = Vid};
         foreach (var entity in NearbyEntities)
