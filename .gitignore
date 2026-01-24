@@ -20,3 +20,6 @@ docs/docs/Commands/*.md
 !docs/docs/Commands/Index.md
 
 src/Executables/**/data
+
+ClientVS22/**
+ServerVS22/**
