@@ -7,22 +7,23 @@ namespace QuantumCore.Game.Quest;
 [Quest]
 public class TestQuest : Quest
 {
-    private readonly IItemManager _itemManager;
+    private readonly IQuestEventManager _eventManager;
 
-    public TestQuest(QuestState state, IPlayerEntity player, IItemManager itemManager) : base(state, player)
+    public TestQuest(QuestState state, IPlayerEntity player, IItemManager itemManager, IQuestEventManager eventManager)
+        : base(state, player, itemManager)
     {
-        _itemManager = itemManager;
+        _eventManager = eventManager;
     }
 
     public override void Init()
     {
-        // todo invent api for register npc click event on player
-        GameEventManager.RegisterNpcClickEvent("Test Quest", 20354, Test, player => player.Vid == Player.Vid);
-        GameEventManager.RegisterNpcGiveEvent("Test Quest", 20016, (player, item) =>
+        // Register events using the injected event manager
+        _eventManager.RegisterNpcClickEvent("Test Quest", 20354, Test, p => p.Vid == Player.Vid);
+        _eventManager.RegisterNpcGiveEvent("Test Quest", 20016, (p, item) =>
         {
-            TestGive(player, item);
+            TestGive(p, item);
             return Task.CompletedTask;
-        }, (player, _) => player.Vid == Player.Vid);
+        }, (p, _) => p.Vid == Player.Vid);
     }
 
     private async Task Test(IPlayerEntity player)
@@ -42,7 +43,7 @@ public class TestQuest : Quest
 
     private void TestGive(IPlayerEntity player, ItemInstance item)
     {
-        var proto = _itemManager.GetItem(item.ItemId);
+        var proto = ItemManager.GetItem(item.ItemId);
 
         if (proto is null)
         {
