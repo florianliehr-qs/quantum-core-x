@@ -48,5 +48,14 @@ public class EnterGameHandler : IGamePacketHandler<EnterGame>
 
         player.SendInventory();
         player.Skills.Send();
+
+        // Send active quest info after player enters game
+        foreach (var quest in player.Quests.Values)
+        {
+            if (quest.State.IsStarted && !quest.State.IsCompleted)
+            {
+                quest.SendQuestInfo();
+            }
+        }
     }
 }
